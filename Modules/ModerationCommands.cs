@@ -1,10 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
 using System.Threading.Tasks;
-using WindowBot.Resources;
-using WindowBot.Accounts.Guild;
 using System.Linq;
 
 namespace WindowBot.Modules
@@ -20,22 +17,19 @@ namespace WindowBot.Modules
         {
             if (user != null)
             {
-                await user.Guild.AddBanAsync(user);
                 await user.GetOrCreateDMChannelAsync();
-                await user.SendMessageAsync($"You have been banned from {Context.Guild.Name}, {reason}");
+            await user.SendMessageAsync($"You were banned from \"{Context.Guild.Name}\" by **{user.Username}**" + 
+                                        "\nReason: {reason}");
 
-                var banembed2 = new EmbedBuilder();
+            var eb = new EmbedBuilder()
+                .WithTitle("{user.Mention} has been banned.")
+                .AddField("Moderator:", Context.User.Username)
+                .AddField("Reason", reason)
+                .WithColor(Color.Blue)
+                .WithCurrentTimestamp();
 
-                banembed2.WithTitle($"{user} has been banned.");
-                banembed2.AddField($"Moderator:", Context.User.Username + Context.User.Discriminator);
-                banembed2.AddField($"Reason:", reason);
-                banembed2.WithCurrentTimestamp();
-                banembed2.WithColor(Color.Red);
-
-
-                await user.Guild.AddBanAsync(user);
-
-                await Context.Channel.SendMessageAsync("", false, banembed2.Build());
+            await Context.Guild.AddBanAsync(user);
+            await ReplyAsync(embed:eb.Build());
                 
             }
 
@@ -45,7 +39,7 @@ namespace WindowBot.Modules
 
                 band.WithTitle("Command: .ban");
                 band.WithDescription("**Description:** Ban a member\n**Usage:** .ban [user] [reason]\n**Example:** .ban @yolo retard");
-                
+                band.WithColor(Color.Blue);
 
                 await Context.Channel.SendMessageAsync("", false, band.Build());
             }
@@ -80,7 +74,37 @@ namespace WindowBot.Modules
             }
             else
             {
-                
+                var band = new EmbedBuilder();
+
+                band.WithTitle("Command: .softban");
+                band.WithDescription("**Description:** Bans a user then removes the ban.\n**Usage:** .ban [user] [reason]\n**Example:** .ban @yolo retard");
+                band.WithColor(Color.Blue);
+
+                await Context.Channel.SendMessageAsync("", false, band.Build());
+            }
+        }
+
+        [Command("unban")]
+        [RequireBotPermission(GuildPermission.BanMembers)]
+        [RequireUserPermission(GuildPermission.BanMembers)]
+        public async Task Unbanuser(ulong userID = 0)
+        {
+            if (userID != 0)
+            {
+                await Context.Guild.RemoveBanAsync(userID);
+
+                await Context.Channel.SendMessageAsync($"User has been unbanned!");
+            }
+
+            else
+            {
+                var band = new EmbedBuilder();
+
+                band.WithTitle("Command: .unban");
+                band.WithDescription("**Description:** Unbans a user from the server.\n**Usage:** .unban [userID]\n**Example:** .unban 312511213986906112");
+                band.WithColor(Color.Blue);
+
+                await Context.Channel.SendMessageAsync("", false, band.Build());
             }
         }
 
@@ -93,20 +117,22 @@ namespace WindowBot.Modules
         {
             if (user != null)
             {
-                await user.KickAsync(reason);
                 await user.GetOrCreateDMChannelAsync();
                 await user.SendMessageAsync($"You have been kicked from {Context.Guild.Name}, {reason}");
 
+                await user.KickAsync(reason);
+
                 var kickdmembed2 = new EmbedBuilder();
+
                 kickdmembed2.Build();
                 kickdmembed2.WithTitle($"{user} has been kicked");
-                kickdmembed2.AddField($"Moderator:", Context.User.Username + Context.User.Discriminator);
+                kickdmembed2.AddField($"Moderator:", Context.User.Username);
                 kickdmembed2.AddField($"Reason:", reason);
                 kickdmembed2.WithCurrentTimestamp();
-                kickdmembed2.WithColor(Color.LightOrange);
+                kickdmembed2.WithColor(Color.Blue);
+
                 await Context.Channel.SendMessageAsync("", false, kickdmembed2.Build());
-                await user.SendMessageAsync("", false, kickdmembed2.Build());
-                await user.KickAsync(reason);
+
             }
             else
             {
@@ -114,7 +140,7 @@ namespace WindowBot.Modules
 
                 band2.WithTitle("Command: .kick");
                 band2.WithDescription("**Description:** Kick a member\n**Usage:** .kick [user] [reason]\n**Example:** .kick @yolo retard");
-
+                band2.WithColor(Color.Blue);
 
                 await Context.Channel.SendMessageAsync("", false, band2.Build());
             }
@@ -139,6 +165,7 @@ namespace WindowBot.Modules
 
                 band4.WithTitle("Command: .mute");
                 band4.WithDescription("**Description:** Mutes a user\n**Usage:** .mute [user]\n**Example:** .mute @yolo");
+                band4.WithColor(Color.Blue);
 
                 await Context.Channel.SendMessageAsync("", false, band4.Build());
             }
@@ -157,12 +184,7 @@ namespace WindowBot.Modules
                 await (user as IGuildUser).RemoveRoleAsync(role);
 
                 await Context.Channel.SendMessageAsync("User has been unmuted.", false);
-                var band5 = new EmbedBuilder();
 
-                band5.WithTitle("Command: .unmute");
-                band5.WithDescription("**Description:** Unmutes a muted user\n**Usage:** .unmute [user]\n**Example:** .unmute @yolo");
-
-                await Context.Channel.SendMessageAsync("", false, band5.Build());
             }
 
             else
@@ -171,21 +193,11 @@ namespace WindowBot.Modules
 
                 band5.WithTitle("Command: .unmute");
                 band5.WithDescription("**Description:** Unmutes a muted user\n**Usage:** .unmute [user]\n**Example:** .unmute @yolo");
+                band5.WithColor(Color.Blue);
 
                 await Context.Channel.SendMessageAsync("", false, band5.Build());
 
             }
-
-        }
-
-        [Command("Warn")]
-        [Summary("Warns a user.")]
-        [RequireUserPermission(GuildPermission.ManageMessages)]
-        [RequireBotPermission(GuildPermission.BanMembers)]
-        public async Task WarnUser(IGuildUser user, string reason)
-        {
-            
-
 
         }
 
@@ -216,6 +228,7 @@ namespace WindowBot.Modules
 
                 band3.WithTitle("Command: .purge");
                 band3.WithDescription("**Description:** Purge a certain amount of messages\n**Usage:** .purge [amount]\n**Example:** .purge 100");
+                band3.WithColor(Color.Blue);
 
 
                 await Context.Channel.SendMessageAsync("", false, band3.Build());
@@ -224,48 +237,36 @@ namespace WindowBot.Modules
            
         }
 
-        [Command("Setnick")]
-        [Alias("setnick", "changenick")]
-        [Summary("Change another user's nickname to the specified text")]
+        [Command("nickname")]
+        [Alias("nick")]
         [RequireUserPermission(GuildPermission.ManageNicknames)]
         [RequireBotPermission(GuildPermission.ManageNicknames)]
-        public async Task Nick(SocketGuildUser user, [Remainder]string name)
+        public async Task SetNicknameAsync([RequireUserHierarchy][RequireBotHierarchy]SocketGuildUser user, [Remainder]string nickname = null)
         {
-            await user.ModifyAsync(x => x.Nickname = name);
-            await Context.Channel.SendMessageAsync($"{user}'s nick has been changed.", false);
-        }
-
-        [Command("Announce")]
-        [Alias("announce", "a")]
-        [Summary("Sends the specified text into an announcement channel with an embed.")]
-        [RequireUserPermission(GuildPermission.Administrator)]
-        public async Task AnnouncementAsync(string tag, [Remainder] string text)
-        {
-            if (tag != null)
+            if (nickname != null)
             {
-                var announce = new EmbedBuilder();
-                var RandomizeColor = new Random().Next(Constants.colorsArray.Length);
-
-                announce.WithDescription(text);
-                announce.WithFooter($"Announcement created by {Context.User.Username + Context.User.Discriminator}");
-                announce.WithColor(Constants.colorsArray[RandomizeColor]);
-
-                await Context.Channel.SendMessageAsync($"{tag}");
-                await Context.Channel.SendMessageAsync("", false, announce.Build());
-                await Context.Message.DeleteAsync();
+                if (nickname.Length! < 33)
+                {
+                    await user.ModifyAsync(x => x.Nickname = nickname);
+                    await ReplyAsync($"Done! {user.Username}'s nickname has been updated.");
+                }
+                else
+                {
+                    await ReplyAsync("Nicknames may not exceed 32 characters. Please shorten it and try again.");
+                }
             }
+
             else
             {
-                var announce = new EmbedBuilder();
-                var RandomizeColor = new Random().Next(Constants.colorsArray.Length);
+                var band3 = new EmbedBuilder();
 
-                announce.WithDescription(text);
-                announce.WithFooter($"Announcement created by {Context.User.Username + Context.User.Discriminator}");
-                announce.WithColor(Constants.colorsArray[RandomizeColor]);
+                band3.WithTitle("Command: .nick");
+                band3.WithDescription("**Description:** Changes the nickname of a user\n**Usage:** .nick [user] [nickname]\n**Example:** .nick @yolo pedoswag");
+                band3.WithColor(Color.Blue);
 
-                await Context.Channel.SendMessageAsync("", false, announce.Build());
-                await Context.Message.DeleteAsync();
+                await Context.Channel.SendMessageAsync("", false, band3.Build());
             }
         }
+
     }
 }
