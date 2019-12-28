@@ -2,9 +2,9 @@
 using Discord;
 using System.Threading.Tasks;
 using Discord.Commands;
-using WindowBot.Resources;
 
-namespace Windbow.Modules
+
+namespace Cubi.Modules
 {
     public class MathCommands : ModuleBase<SocketCommandContext>
     {
