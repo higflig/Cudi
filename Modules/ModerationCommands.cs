@@ -3,6 +3,8 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System.Threading.Tasks;
 using System.Linq;
+using Cudi.Main;
+using Cudi.Preconditions;
 
 namespace WindowBot.Modules
 {
